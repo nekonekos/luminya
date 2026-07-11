@@ -1,10 +1,4 @@
-/**
- * CORS 中间件
- * 处理预检请求和添加响应头
- */
-
 export function handleCORS(request: Request): Response | null {
-  // 如果请求方法为 OPTIONS，直接返回预检响应
   if (request.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
@@ -16,13 +10,9 @@ export function handleCORS(request: Request): Response | null {
       },
     });
   }
-  // 非预检请求返回 null，后续路由处理会添加 CORS 头
   return null;
 }
 
-/**
- * 为响应添加 CORS 头
- */
 export function addCORSHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
   headers.set('Access-Control-Allow-Origin', '*');

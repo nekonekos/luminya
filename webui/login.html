@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - LumiNya</title>
+    <link rel="stylesheet" href="/css/pc.css">
+    <style>
+        /* 登录页特有样式，覆盖或补充 pc.css */
+        .login-wrapper {
+            min-height: calc(100vh - 60px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .login-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+        }
+        .login-card h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .login-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 28px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: 0.2s;
+            outline: none;
+            background: #fefcf9;
+            color: var(--text-primary);
+        }
+        .form-group input:focus {
+            border-color: #b88a5e;
+            box-shadow: 0 0 0 3px rgba(184,138,94,0.1);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #8faa8f;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+        .btn-login:hover {
+            background: #7a9e7a;
+        }
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .login-footer a {
+            color: #b88a5e;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+        .error-msg {
+            background: #fff0f0;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 10px;
+            color: #b02a2a;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .error-msg.visible {
+            display: block;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <!-- 保持统一 Header -->
+    <header class="header">
+        <div class="header-left">
+            <a href="/home.html" class="logo"><span class="logo-symbol">✦</span>LumiNya</a>
+            <span class="slogan">“每一缕思绪，都有回响”</span>
+        </div>
+        <div class="header-right">
+            <span style="color: var(--text-muted); font-size:0.8rem;">私域创作社区</span>
+        </div>
+    </header>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <h2>欢迎回来</h2>
+            <p class="login-subtitle">登录你的 LumiNya 账号</p>
+
+            <!-- 错误提示 -->
+            <div class="error-msg" id="errorMsg"></div>
+
+            <!-- 登录表单 -->
+            <form id="loginForm" novalidate>
+                <div class="form-group">
+                    <label for="account">用户名 / 邮箱 / 手机号</label>
+                    <input type="text" id="account" name="account" placeholder="输入用户名、邮箱或手机号" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" placeholder="输入密码" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn-login" id="loginBtn">登录</button>
+            </form>
+
+            <div class="login-footer">
+                还没有账号？<a href="/register.html">立即注册</a>
+            </div>
+            <a href="/home.html" class="back-link">← 返回首页</a>
+        </div>
+    </div>
+
+    <footer class="footer">
+        LumiNya · 私域创作社区 · 2026
+    </footer>
+
+    <script src="/js/fetch.js"></script>
+    <script>
+        (function() {
+            const form = document.getElementById('loginForm');
+            const accountInput = document.getElementById('account');
+            const passwordInput = document.getElementById('password');
+            const loginBtn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('errorMsg');
+
+            // 隐藏错误提示
+            function hideError() {
+                errorMsg.classList.remove('visible');
+                errorMsg.textContent = '';
+            }
+
+            function showError(message) {
+                errorMsg.textContent = message;
+                errorMsg.classList.add('visible');
+            }
+
+            // 表单提交
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                hideError();
+
+                // 基础验证
+                const account = accountInput.value.trim();
+                const password = passwordInput.value;
+
+                if (!account || !password) {
+                    showError('请填写账号和密码');
+                    return;
+                }
+
+                // 禁用按钮，防止重复提交
+                loginBtn.disabled = true;
+                loginBtn.textContent = '登录中...';
+
+                try {
+                    const response = await LumiNyaAPI.post('/users/login', {
+                        account: account,
+                        password: password
+                    });
+
+                    // 登录成功：存储 token，跳转
+                    if (response && response.token) {
+                        LumiNyaAPI.setToken(response.token);
+
+                        // 获取 redirect 参数
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const redirect = urlParams.get('redirect');
+                        if (redirect) {
+                            // 安全校验：只允许本站相对路径或同域跳转，防止钓鱼
+                            const safeRedirect = decodeURIComponent(redirect);
+                            if (safeRedirect.startsWith('/') || safeRedirect.startsWith(window.location.origin)) {
+                                window.location.href = safeRedirect;
+                            } else {
+                                window.location.href = '/home.html';
+                            }
+                        } else {
+                            // 默认跳转到个人主页或首页
+                            window.location.href = '/dashboard.html';
+                        }
+                    } else {
+                        showError('登录失败，服务器返回异常');
+                    }
+                } catch (error) {
+                    // fetch.js 已将业务错误包装为 Error
+                    showError(error.message || '登录失败，请稍后重试');
+                } finally {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = '登录';
+                }
+            });
+
+            // 输入时清除错误
+            accountInput.addEventListener('input', hideError);
+            passwordInput.addEventListener('input', hideError);
+        })();
+    </script>
+</body>
+</html>
