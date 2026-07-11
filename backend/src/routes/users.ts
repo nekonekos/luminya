@@ -127,15 +127,14 @@ async function getMe(env: Env, request: Request): Promise<Response> {
     return json({ error: 'Token 无效或已过期' }, 401);
   }
 
-  // 查询用户信息
+  // 查询用户信息（新增 total_likes 和 total_views）
   const user = await env.DB.prepare(
-    `SELECT user_id, user_username, user_email, user_phone, user_annual_ring, user_spectrum, user_registered_at FROM users WHERE user_id = ?`
+    `SELECT user_id, user_username, user_email, user_phone, user_annual_ring, user_spectrum, 
+            user_registered_at, user_total_likes, user_total_views
+    FROM users WHERE user_id = ?`
   )
-    .bind(userId)
-    .first();
-  if (!user) {
-    return json({ error: '用户不存在' }, 404);
-  }
+  .bind(userId)
+  .first();
 
   // 更新活跃时间
   const now = Math.floor(Date.now() / 1000);
@@ -151,6 +150,8 @@ async function getMe(env: Env, request: Request): Promise<Response> {
     annualRing: user.user_annual_ring,
     spectrum: user.user_spectrum,
     registeredAt: user.user_registered_at,
+    totalLikes: user.user_total_likes,
+    totalViews: user.user_total_views,
   });
 }
 

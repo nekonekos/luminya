@@ -144,7 +144,7 @@ async function getPost(env: Env, request: Request, postId: string): Promise<Resp
   await env.DB.prepare('UPDATE posts SET posts_views = posts_views + 1 WHERE posts_id = ?')
     .bind(postId).run();
   post.posts_views = (post.posts_views as number) + 1;
-  
+
   // 关联标签
   const tags = await env.DB.prepare(
     'SELECT t.tag_id, t.tag_name FROM tags t JOIN post_tags pt ON t.tag_id = pt.pt_tag_id WHERE pt.pt_post_id = ?'
@@ -169,14 +169,24 @@ async function listPosts(env: Env, request: Request): Promise<Response> {
   const page = parseInt(url.searchParams.get('page') || '1');
   const limit = 20;
   const offset = (page - 1) * limit;
+  const userId = url.searchParams.get('userId');  // 新增：可选用户ID
 
-  const posts = await env.DB.prepare(
-    'SELECT posts_id, posts_title, posts_hascover, posts_cover_url, posts_views, posts_created_at FROM posts WHERE posts_visible = 1 ORDER BY posts_created_at DESC LIMIT ? OFFSET ?'
-  )
-    .bind(limit, offset)
-    .all();
-  const total = await env.DB.prepare('SELECT COUNT(*) as count FROM posts WHERE posts_visible = 1')
-    .first();
+  let postsQuery = 'SELECT posts_id, posts_title, posts_hascover, posts_cover_url, posts_views, posts_created_at FROM posts WHERE posts_visible = 1';
+  let countQuery = 'SELECT COUNT(*) as count FROM posts WHERE posts_visible = 1';
+  const params: any[] = [];
+
+  // 如果有 userId，则增加作者过滤
+  if (userId) {
+    postsQuery += ' AND posts_author_id = ?';
+    countQuery += ' AND posts_author_id = ?';
+    params.push(userId);
+  }
+
+  postsQuery += ' ORDER BY posts_created_at DESC LIMIT ? OFFSET ?';
+  params.push(limit, offset);
+
+  const posts = await env.DB.prepare(postsQuery).bind(...params).all();
+  const total = await env.DB.prepare(countQuery).bind(userId ? userId : undefined).first();
 
   return json({
     posts: posts.results,
