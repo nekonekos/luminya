@@ -6,6 +6,8 @@ import { handleLikeRoutes } from './routes/likes';
 import { handleUploadRoutes } from './routes/uploads';
 import { updateUserLevels } from './cron/updateLevels';
 import { cleanupDeletedPosts } from './cron/cleanupDeleted';
+import { refreshFeed } from './cron/refreshFeed';
+import { handleFeedRoutes } from './routes/feed';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -42,7 +44,9 @@ export default {
     // 点赞路由
     response = await handleLikeRoutes(env, request, path);
     if (response) return response;
-
+    // 推荐流路由
+    response = await handleFeedRoutes(env, request, path);
+    if (response) return response;
     // 404
     return new Response(JSON.stringify({ error: 'Not Found' }), {
       status: 404,
@@ -52,5 +56,8 @@ export default {
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(updateUserLevels(env));
     ctx.waitUntil(cleanupDeletedPosts(env));
+    if (event.cron === '*/5 * * * *') {
+      ctx.waitUntil(refreshFeed(env));
+    }
   }
 };

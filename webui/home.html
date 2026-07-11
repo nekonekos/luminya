@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LumiNya · 私域创作社区</title>
+    <link rel="stylesheet" href="/css/pc.css">
+    <!-- 额外样式：弹窗等 -->
+    <style>
+        /* ---------- 自定义弹窗 ---------- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s, visibility 0.25s;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-box {
+            background: #fff;
+            border-radius: 24px;
+            padding: 32px 28px 28px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            text-align: center;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.25s;
+        }
+        .modal-overlay.active .modal-box {
+            transform: translateY(0);
+        }
+        .modal-close {
+            position: absolute;
+            top: 14px; right: 18px;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: #f5efe8;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #6b5d4f;
+            transition: 0.2s;
+        }
+        .modal-close:hover {
+            background: #e6ddd2;
+            color: #2e241a;
+        }
+        .modal-icon {
+            font-size: 2.4rem;
+            margin-bottom: 8px;
+            color: #b88a5e;
+        }
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2e241a;
+            margin-bottom: 8px;
+        }
+        .modal-desc {
+            font-size: 0.9rem;
+            color: #6b5d4f;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        .modal-btn {
+            display: inline-block;
+            background: #8faa8f;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 10px 32px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .modal-btn:hover {
+            background: #7a9e7a;
+        }
+        /* 角落之光高亮样式已在pc.css定义 */
+        /* 加载状态 */
+        .loading-indicator {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .end-of-feed {
+            text-align: center;
+            padding: 14px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border-light);
+            margin-top: 8px;
+        }
+        /* 帖子详情嵌入 */
+        .post-detail-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            margin-bottom: 20px;
+        }
+        .post-detail-cover {
+            width: 100%;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            object-fit: cover;
+        }
+        .post-detail-content {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+            margin: 20px 0;
+            word-break: break-word;
+        }
+        .post-detail-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .post-detail-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .post-detail-tag {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 16px;
+            background: #eef2e7;
+            color: #5f7a5f;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-left">
+            <span class="logo"><span class="logo-symbol">✦</span>LumiNya</span>
+            <span class="slogan">“每一缕思绪，都有回响”</span>
+        </div>
+        <div class="header-right" id="headerRight">
+            <!-- 动态渲染：未登录显示登录/注册按钮，已登录显示用户徽章 -->
+        </div>
+    </header>
+
+    <!-- 主三栏布局 -->
+    <div class="main-container">
+        <!-- 左侧边栏 -->
+        <aside class="left-sidebar" id="leftSidebar">
+            <!-- 动态渲染：标签云 + 我的成长（需登录） -->
+        </aside>
+
+        <!-- 中间内容区域 -->
+        <main class="content-feed" id="contentFeed">
+            <!-- 动态渲染：帖子列表 或 帖子详情 -->
+        </main>
+
+        <!-- 右侧边栏 -->
+        <aside class="right-sidebar" id="rightSidebar">
+            <!-- 动态渲染：用户卡片（需登录） + AI 精灵 + 热议标签 -->
+        </aside>
+    </div>
+
+    <!-- 浮动发帖按钮 -->
+    <button class="float-create-btn" id="createBtn" title="写新帖子">+</button>
+
+    <!-- 自定义弹窗（单例） -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <button class="modal-close" id="modalClose">×</button>
+            <div class="modal-icon" id="modalIcon">✨</div>
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-desc" id="modalDesc"></div>
+            <button class="modal-btn" id="modalActionBtn"></button>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        LumiNya 前端打样 · PC 端首页流 · 2026
+    </footer>
+
+    <!-- 引入依赖：marked + DOMPurify（用于 Markdown 安全渲染） -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <!-- 引入 fetch 封装 -->
+    <script src="/js/fetch.js"></script>
+    <!-- 业务逻辑 -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ---------- 常量映射 ----------
+            const RING_MAP = {
+                'user_TOR_spring': { label: '春·萌芽', icon: '🌿', cssClass: 'spring' },
+                'user_TOR_summer': { label: '夏·繁茂', icon: '☀️', cssClass: 'summer' },
+                'user_TOR_autumn': { label: '秋·蕴藏', icon: '🍂', cssClass: 'autumn' },
+                'user_TOR_winter': { label: '冬·休憩', icon: '❄️', cssClass: 'winter' }
+            };
+            const SPECTRUM_MAP = {
+                'user_spectrum_candle':    { label: '烛火', icon: '🕯️', cssClass: 'candle' },
+                'user_spectrum_flame':     { label: '焰心', icon: '🔥', cssClass: 'flame' },
+                'user_spectrum_glow':      { label: '灵光', icon: '💡', cssClass: 'glow' },
+                'user_spectrum_lumi':      { label: '星辉', icon: '🌟', cssClass: 'lumi' },
+                'user_spectrum_sunbright': { label: '极昼', icon: '☀️', cssClass: 'sunbright' }
+            };
+
+            // 全局状态
+            let currentUser = null;          // 登录用户信息（来自 /users/me）
+            let feedCursor = null;
+            let feedHasMore = true;
+            let feedLoading = false;
+            let feedObserver = null;         // IntersectionObserver 用于加载更多
+            let postDetailId = null;         // 当前正在查看的帖子 ID
+
+            // DOM 元素
+            const headerRight = document.getElementById('headerRight');
+            const leftSidebar = document.getElementById('leftSidebar');
+            const contentFeed = document.getElementById('contentFeed');
+            const rightSidebar = document.getElementById('rightSidebar');
+            const createBtn = document.getElementById('createBtn');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalClose = document.getElementById('modalClose');
+            const modalIcon = document.getElementById('modalIcon');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDesc = document.getElementById('modalDesc');
+            const modalActionBtn = document.getElementById('modalActionBtn');
+
+            // ---------- 工具函数 ----------
+            function formatRelativeTime(timestamp) {
+                if (!timestamp) return '';
+                const now = Math.floor(Date.now() / 1000);
+                const diff = now - timestamp;
+                if (diff < 60) return '刚刚';
+                if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
+                if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
+                if (diff < 2592000) return Math.floor(diff / 86400) + '天前';
+                return new Date(timestamp * 1000).toLocaleDateString('zh-CN');
+            }
+
+            // 简易 Markdown 渲染（安全）
+            function renderMarkdown(mdText) {
+                if (!mdText) return '';
+                const rawHtml = marked.parse(mdText);
+                return DOMPurify.sanitize(rawHtml);
+            }
+
+            // 弹窗管理（单例）
+            function showModal(icon, title, desc, btnText, btnAction, showClose = true) {
+                modalIcon.textContent = icon || '✨';
+                modalTitle.textContent = title || '';
+                modalDesc.textContent = desc || '';
+                modalActionBtn.textContent = btnText || '确定';
+                modalActionBtn.onclick = function() {
+                    hideModal();
+                    if (typeof btnAction === 'function') btnAction();
+                };
+                modalClose.style.display = showClose ? 'flex' : 'none';
+                modalOverlay.classList.add('active');
+            }
+            function hideModal() {
+                modalOverlay.classList.remove('active');
+            }
+
+            // 检查登录状态（仅本地 token 存在）
+            function hasToken() {
+                return !!LumiNyaAPI.getToken();
+            }
+
+            // 尝试获取用户信息（如果已登录）
+            async function fetchUserInfo() {
+                if (!hasToken()) return null;
+                try {
+                    const user = await LumiNyaAPI.get('/users/me');
+                    return user;
+                } catch (e) {
+                    // 401 会被 fetch.js 处理并跳转登录，所以这里实际不会被执行到
+                    console.warn('获取用户信息失败:', e.message);
+                    return null;
+                }
+            }
+
+            // ---------- 渲染函数 ----------
+
+            // 渲染头部右侧
+            function renderHeader() {
+                if (currentUser) {
+                    const ring = RING_MAP[currentUser.annualRing] || { label: currentUser.annualRing };
+                    const spectrum = SPECTRUM_MAP[currentUser.spectrum] || { label: currentUser.spectrum };
+                    headerRight.innerHTML = `
+                        <div class="user-badge">
+                            <div class="user-avatar">${currentUser.username.charAt(0)}</div>
+                            <span>${currentUser.username}</span>
+                            <span class="level-text">${ring.label} | ${spectrum.label}</span>
+                        </div>
+                        <button class="btn-outline" id="gotoDashboard">创作中心</button>
+                    `;
+                    document.getElementById('gotoDashboard').addEventListener('click', () => {
+                        window.location.href = '/dashboard.html';
+                    });
+                } else {
+                    headerRight.innerHTML = `
+                        <button class="btn-outline" id="gotoLogin">登录</button>
+                        <button class="btn-outline" id="gotoRegister">注册</button>
+                    `;
+                    document.getElementById('gotoLogin').addEventListener('click', () => {
+                        window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
+                    });
+                    document.getElementById('gotoRegister').addEventListener('click', () => {
+                        window.location.href = '/register.html';
+                    });
+                }
+            }
+
+            // 渲染左侧边栏
+            function renderLeftSidebar() {
+                // 标签云（静态预设 + 动态热门）
+                let html = `
+                    <div class="sidebar-card">
+                        <div class="sidebar-title">主题标签</div>
+                        <div class="tag-cloud" id="themeTags"></div>
+                        <div class="sidebar-title" style="margin-top:16px;">情绪标签</div>
+                        <div class="tag-cloud" id="moodTags"></div>
+                    </div>
+                `;
+                if (currentUser) {
+                    const ring = RING_MAP[currentUser.annualRing] || { label: currentUser.annualRing, icon: '🌱' };
+                    const spectrum = SPECTRUM_MAP[currentUser.spectrum] || { label: currentUser.spectrum, icon: '🕯️' };
+                    html += `
+                        <div class="sidebar-card">
+                            <div class="sidebar-title">我的成长</div>
+                            <div class="growth-mini">
+                                <span class="ring-icon">${ring.icon}</span>
+                                <div>
+                                    <div class="growth-label">年轮</div>
+                                    <div class="growth-value">${ring.label}</div>
+                                </div>
+                            </div>
+                            <div class="growth-mini">
+                                <span class="ring-icon">${spectrum.icon}</span>
+                                <div>
+                                    <div class="growth-label">光谱</div>
+                                    <div class="growth-value">${spectrum.label}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-size:0.75rem; color: var(--text-muted); padding:0 4px;">
+                            年轮只增不减 · 光谱月度衰减10%<br>冬季光谱衰减暂停
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="sidebar-card">
+                            <div class="sidebar-title">我的成长</div>
+                            <p class="text-muted text-small">登录后查看成长数据</p>
+                        </div>
+                    `;
+                }
+                leftSidebar.innerHTML = html;
+
+                // 加载标签
+                loadTags('theme', 'themeTags');
+                loadTags('mood', 'moodTags');
+            }
+
+            // 加载标签（模拟/真实）
+            async function loadTags(type, containerId) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                // 暂时使用预设硬编码标签，未来可接 API
+                const themeTags = ['React', '独立游戏', '前端工程化', 'UI设计', 'Rust', 'Serverless', 'AI绘画', '开源项目'];
+                const moodTags = ['深夜灵感', 'UI吐槽', '开源焦虑', '求职焦虑', '创作热情'];
+                const tags = type === 'theme' ? themeTags : moodTags;
+                container.innerHTML = tags.map(t => `<span class="tag${type === 'mood' ? ' mood' : ''}" data-tag="${t}">#${t}</span>`).join('');
+                // 绑定点击事件（跳转标签搜索页，二期实现）
+                container.querySelectorAll('.tag').forEach(el => {
+                    el.addEventListener('click', () => {
+                        // TODO: 跳转标签页
+                    });
+                });
+            }
+
+            // 渲染右侧边栏
+            function renderRightSidebar() {
+                let userCardHtml = '';
+                if (currentUser) {
+                    const ring = RING_MAP[currentUser.annualRing] || { label: currentUser.annualRing, icon: '🌱' };
+                    const spectrum = SPECTRUM_MAP[currentUser.spectrum] || { label: currentUser.spectrum, icon: '🕯️' };
+                    const regDate = currentUser.registeredAt ? new Date(currentUser.registeredAt * 1000).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' }) : '未知';
+                    userCardHtml = `
+                        <div class="user-card">
+                            <div class="user-card-avatar">${currentUser.username.charAt(0)}</div>
+                            <div class="user-card-name">${currentUser.username}</div>
+                            <div class="user-card-levels">
+                                <span class="level-item">
+                                    <span class="level-dot" style="background: var(--accent-spring);"></span>
+                                    ${ring.label}
+                                </span>
+                                <span class="level-item">
+                                    <span class="level-dot" style="background: var(--accent-spectrum);"></span>
+                                    ${spectrum.label}
+                                </span>
+                            </div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:10px;">
+                                注册于 ${regDate} · 累计发帖 ${currentUser.postCount || '...'}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    userCardHtml = `
+                        <div class="user-card">
+                            <div class="user-card-avatar" style="background:#ddd;">?</div>
+                            <div class="user-card-name">未登录</div>
+                            <div class="user-card-levels">
+                                <span style="font-size:0.8rem; color:var(--text-muted);">登录后查看年轮与光谱</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                rightSidebar.innerHTML = `
+                    ${userCardHtml}
+                    <div class="ai-card">
+                        <span class="ai-avatar">灵光精灵</span>
+                        <div class="ai-text">
+                            悄悄对你说：<br>
+                            “今天 <strong>#Rust</strong> 标签下有新讨论，要去看看吗？”
+                        </div>
+                    </div>
+                    <div class="sidebar-card" style="padding:14px;">
+                        <div class="sidebar-title">此刻热议</div>
+                        <div class="tag-cloud" style="font-size:0.75rem;">
+                            <span class="tag">#AI绘画</span>
+                            <span class="tag mood">#求职焦虑</span>
+                            <span class="tag">#开源项目</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 渲染帖子卡片
+            function renderPostCard(post) {
+                const isCorner = post.is_corner || false; // 假设后端返回此字段
+                const coverHtml = (post.posts_hascover && post.posts_cover_url && post.posts_cover_url !== 'N/A')
+                    ? `<div class="post-cover"><img src="${post.posts_cover_url}?width=400" alt="封面" loading="lazy"></div>`
+                    : '';
+                const author = post.author || {};
+                const ring = RING_MAP[author.user_annual_ring] || { label: author.user_annual_ring || '?' };
+                const spectrum = SPECTRUM_MAP[author.user_spectrum] || { label: author.user_spectrum || '?' };
+                const summary = post.posts_summary || '';
+                const tags = (post.tags || []).slice(0, 2); // 最多显示两个标签
+                const timeStr = formatRelativeTime(post.posts_created_at);
+                const views = post.posts_views || 0;
+                const likes = post.posts_likes || 0;
+
+                return `
+                    <article class="post-card ${isCorner ? 'highlight' : ''}" data-post-id="${post.posts_id}">
+                        ${isCorner ? '<span class="highlight-label">角落之光</span>' : ''}
+                        ${coverHtml}
+                        <h3 class="post-title" ${isCorner ? 'style="margin-top:0;"' : ''}>${escapeHtml(post.posts_title)}</h3>
+                        <p class="post-excerpt">${escapeHtml(summary)}</p>
+                        <div class="post-meta">
+                            <div class="post-tags">
+                                ${tags.map(t => `<span class="post-tag">#${escapeHtml(t.tag_name)}</span>`).join('')}
+                            </div>
+                            <span class="post-author">${escapeHtml(author.user_username || '匿名')} <span class="author-level">${ring.label} | ${spectrum.label}</span></span>
+                            <span class="meta-dot"></span>
+                            <span>${timeStr}</span>
+                            <span class="meta-dot"></span>
+                            <span>${views} 次浏览</span>
+                            <span class="meta-dot"></span>
+                            <span>${likes} 赞</span>
+                        </div>
+                    </article>
+                `;
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // 渲染帖子详情（嵌入中间栏）
+            function renderPostDetail(post) {
+                const coverHtml = (post.posts_hascover && post.posts_cover_url && post.posts_cover_url !== 'N/A')
+                    ? `<img class="post-detail-cover" src="${post.posts_cover_url}?width=800" alt="封面">`
+                    : '';
+                const tags = post.tags || [];
+                const images = post.images || [];
+                // 注意：正文中的图片可能通过 Markdown 内联，这里只展示附件图片
+                let extraImagesHtml = '';
+                if (images.length > 0) {
+                    extraImagesHtml = '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;">' +
+                        images.map(img => `<img src="${img.postimg_w400}" style="max-width:200px; border-radius:12px;" alt="配图">`).join('') +
+                        '</div>';
+                }
+
+                const contentHtml = renderMarkdown(post.posts_content);
+
+                return `
+                    <div class="post-detail-card">
+                        ${coverHtml}
+                        <h2 style="font-size:1.6rem; font-weight:700; margin-bottom:4px;">${escapeHtml(post.posts_title)}</h2>
+                        <div class="post-detail-meta">
+                            <span>作者：${escapeHtml(post.posts_author_id)}</span>
+                            <span class="meta-dot"></span>
+                            <span>${formatRelativeTime(post.posts_created_at)}</span>
+                            <span class="meta-dot"></span>
+                            <span>${post.posts_views} 次浏览</span>
+                        </div>
+                        <div class="post-detail-tags">
+                            ${tags.map(t => `<span class="post-detail-tag">#${escapeHtml(t.tag_name)}</span>`).join('')}
+                        </div>
+                        <div class="post-detail-content">${contentHtml}</div>
+                        ${extraImagesHtml}
+                    </div>
+                `;
+            }
+
+            // 加载 Feed 流（初始或下一页）
+            async function loadFeed(initial = false) {
+                if (feedLoading || !feedHasMore) return;
+                feedLoading = true;
+                const loadMoreEl = document.querySelector('.load-more');
+                if (loadMoreEl) loadMoreEl.textContent = '加载中...';
+
+                try {
+                    const params = new URLSearchParams({ limit: '20' });
+                    if (!initial && feedCursor) {
+                        params.set('cursor', feedCursor);
+                    }
+                    const data = await LumiNyaAPI.get('/feed?' + params.toString());
+
+                    const posts = data.posts || [];
+                    feedHasMore = data.has_more;
+                    feedCursor = data.next_cursor;
+
+                    if (initial) {
+                        // 清空之前的内容
+                        contentFeed.querySelectorAll('.post-card, .load-more, .end-of-feed, .loading-indicator').forEach(el => el.remove());
+                    }
+
+                    // 移除旧的哨兵
+                    const oldSentinel = document.getElementById('feedSentinel');
+                    if (oldSentinel) oldSentinel.remove();
+
+                    // 追加帖子卡片
+                    posts.forEach(post => {
+                        const cardHtml = renderPostCard(post);
+                        contentFeed.insertAdjacentHTML('beforeend', cardHtml);
+                    });
+
+                    // 绑定点击事件（新添加的卡片）
+                    document.querySelectorAll('.post-card').forEach(card => {
+                        if (card._clickBound) return;
+                        card._clickBound = true;
+                        card.addEventListener('click', function(e) {
+                            // 点击卡片本身（非按钮等）跳转到详情
+                            const postId = this.dataset.postId;
+                            if (postId) {
+                                window.location.href = '/home.html?post=' + postId;
+                            }
+                        });
+                    });
+
+                    // 添加加载更多按钮（如果还有更多）
+                    if (feedHasMore) {
+                        const loadMoreHtml = '<div class="load-more" id="loadMoreBtn">加载更多帖子</div>';
+                        contentFeed.insertAdjacentHTML('beforeend', loadMoreHtml);
+                        document.getElementById('loadMoreBtn').addEventListener('click', () => loadFeed(false));
+                    } else {
+                        // 到底了
+                        contentFeed.insertAdjacentHTML('beforeend', '<div class="end-of-feed">已经到底啦</div>');
+                    }
+
+                    // 设置 IntersectionObserver 自动加载（监听加载更多按钮）
+                    if (feedHasMore) {
+                        const sentinel = document.getElementById('loadMoreBtn');
+                        if (sentinel) {
+                            if (feedObserver) feedObserver.disconnect();
+                            feedObserver = new IntersectionObserver((entries) => {
+                                if (entries[0].isIntersecting && !feedLoading) {
+                                    loadFeed(false);
+                                }
+                            }, { threshold: 0.1 });
+                            feedObserver.observe(sentinel);
+                        }
+                    }
+                } catch (err) {
+                    console.error('加载 Feed 失败:', err);
+                    contentFeed.insertAdjacentHTML('beforeend', '<div class="end-of-feed">加载失败，请稍后重试</div>');
+                } finally {
+                    feedLoading = false;
+                    const loadMoreEl = document.querySelector('.load-more');
+                    if (loadMoreEl) loadMoreEl.textContent = '加载更多帖子';
+                }
+            }
+
+            // 加载帖子详情（需要鉴权）
+            async function loadPostDetail(postId) {
+                contentFeed.innerHTML = '<div class="loading-indicator">加载中...</div>';
+                try {
+                    const post = await LumiNyaAPI.get('/posts/' + postId);
+                    // 注意：此接口需要鉴权，未登录会自动跳转登录
+                    contentFeed.innerHTML = renderPostDetail(post);
+                } catch (err) {
+                    console.error('加载帖子详情失败:', err);
+                    // 如果是401，fetch.js 已跳转登录；其他错误展示
+                    contentFeed.innerHTML = '<div class="end-of-feed">帖子加载失败</div>';
+                    showModal('🔒', '你还未登录', '登录后查看完整帖子内容', '登录', () => {
+                        window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
+                    }, true);
+                }
+            }
+
+            // 初始化页面
+            async function init() {
+                // 1. 尝试获取用户信息
+                currentUser = await fetchUserInfo();
+                // 如果 fetchUserInfo 中由于 401 跳转了，页面会刷新，所以下面代码可能在无 token 时执行
+                // 但为防止自动跳转，fetch.js 在非登录/注册页会跳转，这符合预期：无 token 时调用 /users/me 会 401 跳转登录，但我们不希望首页强制登录。
+                // 所以我们需要修改策略：只在有 token 时才调用 /users/me，否则 currentUser 为 null。
+                if (hasToken()) {
+                    try {
+                        currentUser = await LumiNyaAPI.get('/users/me');
+                    } catch (e) {
+                        // 如果401，fetch.js 已经跳转登录，但页面可能被中断，这里捕获是为了防止未捕获错误
+                        currentUser = null;
+                    }
+                } else {
+                    currentUser = null;
+                }
+
+                // 2. 渲染 UI 框架（头部、侧边栏）
+                renderHeader();
+                renderLeftSidebar();
+                renderRightSidebar();
+
+                // 3. 检查 URL 参数，决定加载 Feed 还是帖子详情
+                const urlParams = new URLSearchParams(window.location.search);
+                postDetailId = urlParams.get('post');
+
+                if (postDetailId) {
+                    // 有帖子参数，加载详情（需要鉴权）
+                    if (!hasToken()) {
+                        // 无 token，弹窗未登录提示
+                        showModal('🔒', '你还未登录', '登录后查看完整帖子内容', '登录', () => {
+                            window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
+                        }, true);
+                        // 仍然尝试加载 Feed 作为背景？或者直接显示空状态并引导登录。
+                        // 这里保持显示详情加载失败状态，并让用户关闭弹窗后可以浏览 Feed（需要重新加载页面或者手动清除参数）
+                        contentFeed.innerHTML = '<div class="end-of-feed">请登录后查看帖子</div>';
+                    } else {
+                        await loadPostDetail(postDetailId);
+                    }
+                } else {
+                    // 普通浏览模式，加载 Feed
+                    await loadFeed(true);
+                }
+
+                // 4. 未登录且非帖子详情模式，3 秒后弹窗“精彩体验”
+                if (!currentUser && !postDetailId) {
+                    setTimeout(() => {
+                        // 可能用户已经手动关闭过或已经登录，检查状态
+                        if (!currentUser && !hasToken()) {
+                            showModal('✨', '登录后获得更精彩体验', '解锁年轮成长、AI 陪伴与专属创作空间', '登录', () => {
+                                window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
+                            }, true);
+                        }
+                    }, 3000);
+                }
+
+                // 5. 浮动按钮点击处理
+                createBtn.addEventListener('click', () => {
+                    if (!hasToken()) {
+                        showModal('🔒', '请先登录', '登录后即可创作新帖子', '登录', () => {
+                            window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href + '?post=new');
+                        }, true);
+                    } else {
+                        // 跳转到创作页面（尚未实现，暂提示）
+                        window.location.href = '/post/new.html';
+                    }
+                });
+
+                // 弹窗关闭事件（遮罩点击或关闭按钮）
+                modalClose.addEventListener('click', hideModal);
+                modalOverlay.addEventListener('click', function(e) {
+                    if (e.target === modalOverlay) hideModal();
+                });
+            }
+
+            // 启动
+            init().catch(err => {
+                console.error('初始化失败:', err);
+            });
+        })();
+    </script>
+</body>
+</html>

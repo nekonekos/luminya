@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LumiNya · 路由</title>
+    <style>
+        :root {
+            --bg-body: #faf7f2;
+            --text-primary: #2e241a;
+            --text-muted: #9b8b7a;
+            --accent-spectrum: #b88a5e;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-body);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: var(--text-primary);
+        }
+        .container {
+            text-align: center;
+            max-width: 400px;
+            padding: 40px 30px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4f6d4f;
+            margin-bottom: 16px;
+        }
+        .logo span {
+            color: var(--accent-spectrum);
+        }
+        .message {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 40px;
+            background: #8faa8f;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.2s;
+            cursor: pointer;
+            border: none;
+            font-size: 0.95rem;
+        }
+        .btn:hover {
+            background: #7a9e7a;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #b88a5e;
+            color: #b88a5e;
+            margin-top: 12px;
+        }
+        .btn-outline:hover {
+            background: #faf3ea;
+        }
+        .footer-note {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <!-- 动态内容由 JavaScript 填充 -->
+    </div>
+
+    <script>
+        (function() {
+            const container = document.getElementById('container');
+
+            // 简单的移动设备检测（可扩展）
+            function isMobile() {
+                const ua = navigator.userAgent || '';
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua);
+            }
+
+            function redirectToPC() {
+                window.location.href = '/home.html';
+            }
+
+            function showMobileNotice() {
+                container.innerHTML = `
+                    <div class="logo"><span>✦</span>LumiNya</div>
+                    <div class="message">
+                        📱 移动端适配正在开发中<br>
+                        建议使用 PC 访问以获得完整体验
+                    </div>
+                    <button class="btn" id="continueBtn">继续访问 PC 版</button>
+                    <div class="footer-note">（部分功能可能在移动端显示异常）</div>
+                `;
+                document.getElementById('continueBtn').addEventListener('click', function() {
+                    // 设置 session 标记，避免无限弹窗（可选）
+                    sessionStorage.setItem('skip_mobile_warn', '1');
+                    redirectToPC();
+                });
+            }
+
+            // 主逻辑
+            if (isMobile()) {
+                // 检查是否用户已经选择继续
+                if (sessionStorage.getItem('skip_mobile_warn') === '1') {
+                    redirectToPC();
+                } else {
+                    showMobileNotice();
+                }
+            } else {
+                // PC 设备直接跳转到首页
+                redirectToPC();
+            }
+        })();
+    </script>
+</body>
+</html>

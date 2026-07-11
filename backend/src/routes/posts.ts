@@ -117,27 +117,34 @@ if (tags && Array.isArray(tags)) {
 
 // ---------- 帖子详情（浏览量+1）----------
 async function getPost(env: Env, request: Request, postId: string): Promise<Response> {
+  // 强制登录校验
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return new Response(JSON.stringify({ error: '请先登录' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  const token = authHeader.slice(7);
+  const userId = await verifyToken(env, token);
+  if (!userId) {
+    return new Response(JSON.stringify({ error: 'Token 无效或已过期' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // 以下是原有的帖子查询和浏览量增加逻辑，不变...
   const post = await env.DB.prepare(
     'SELECT * FROM posts WHERE posts_id = ? AND posts_visible = 1'
-  )
-    .bind(postId)
-    .first();
+  ).bind(postId).first();
   if (!post) return json({ error: '帖子不存在' }, 404);
 
-  // 浏览量增加（仅已登录用户）
-  const authHeader = request.headers.get('Authorization');
-  let userId: string | null = null;
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7);
-    userId = await verifyToken(env, token);
-  }
-  if (userId) {
-    await env.DB.prepare('UPDATE posts SET posts_views = posts_views + 1 WHERE posts_id = ?')
-      .bind(postId)
-      .run();
-    post.posts_views = (post.posts_views as number) + 1; // 更新返回值
-  }
-
+  // 浏览量增加（已登录用户调用）
+  await env.DB.prepare('UPDATE posts SET posts_views = posts_views + 1 WHERE posts_id = ?')
+    .bind(postId).run();
+  post.posts_views = (post.posts_views as number) + 1;
+  
   // 关联标签
   const tags = await env.DB.prepare(
     'SELECT t.tag_id, t.tag_name FROM tags t JOIN post_tags pt ON t.tag_id = pt.pt_tag_id WHERE pt.pt_post_id = ?'

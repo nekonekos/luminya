@@ -6,8 +6,8 @@ main = "src/index.ts"
 compatibility_date = "2026-07-01"
 
 # 默认使用 Workers 免费计划，可根据需要调整
-# workers_dev = true   # 使用 workers.dev 子域名测试时启用
-# route = "api.luminya.cn/*"   # 绑定自定义域名时启用
+# workers_dev = false   # 使用 workers.dev 子域名测试时启用
+route = "api.luminya.cn/*"   # 绑定自定义域名时启用
 
 # ---------- 环境变量 ----------
 [vars]
@@ -16,8 +16,8 @@ ENVIRONMENT = "production"
 # ---------- D1 数据库绑定 ----------
 [[d1_databases]]
 binding = "DB"          # 在代码中通过 env.DB 访问
-database_name = "luminya-db"
-database_id = "your-d1-database-id"   # 创建 D1 后从 Cloudflare Dashboard 获取
+database_name = "luminya_db"
+database_id = "e9cfaeb4-c3c7-4e8e-ade4-586989bce5ba"   # 创建 D1 后从 Cloudflare Dashboard 获取
 
 # ---------- R2 存储桶绑定 ----------
 [[r2_buckets]]
@@ -27,12 +27,29 @@ bucket_name = "luminya-files"
 
 # ---------- 定时任务（Cron Triggers）----------
 [triggers]
-crons = ["0 3 * * *"]   # UTC 每天 3:00 执行（北京时间 11:00）
-
+crons = ["0 3 * * *", "*/5 * * * *"]   # UTC 每天 3:00 执行（北京时间 11:00）
+# 增加 KV 命名空间绑定（需先在 Cloudflare 创建 KV 命名空间）
+[[kv_namespaces]]
+binding = "FEED_KV"     # 代码中 env.FEED_KV 访问
+id = "58b1a54baba949eb940e0e0027e2f63f"
 # ---------- 高级选项 ----------
 # 如果使用 Cloudflare Image Resizing（需要付费计划），可添加：
 # [unsafe.bindings]
 # ...
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
 
 # 日志保留
 # tail_consumers = [...]
