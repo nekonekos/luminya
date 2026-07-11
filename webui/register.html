@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册 · LumiNya</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #f7f3ed;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #3f352b;
+    }
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .logo h1 {
+      font-size: 28px;
+      font-weight: 600;
+      color: #5f7a5f;
+      letter-spacing: 1px;
+    }
+    .logo .slogan {
+      font-size: 13px;
+      color: #a6927d;
+      margin-top: 6px;
+    }
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #5a4c3c;
+    }
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #e3d8cd;
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #faf9f7;
+    }
+    input:focus {
+      border-color: #b88a5e;
+      background: #fff;
+    }
+    .hint { font-size: 12px; color: #a6927d; margin-top: 4px; }
+    .error-msg { color: #c75b4a; font-size: 13px; margin-top: 4px; }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #5f7a5f;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 10px;
+    }
+    button:hover { background: #4a624a; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .link-text {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #5a4c3c;
+    }
+    .link-text a {
+      color: #b88a5e;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      display: none;
+    }
+    .alert.error { background: #fce4e4; color: #c75b4a; }
+    .alert.success { background: #e4f3e4; color: #4a624a; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <h1>✦ LumiNya</h1>
+      <div class="slogan">“每一缕思绪，都有回响”</div>
+    </div>
+    <div id="message" class="alert"></div>
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="username">用户名</label>
+        <input type="text" id="username" placeholder="字母、数字或下划线（3-20位）" required>
+        <div class="error-msg" id="usernameError"></div>
+      </div>
+      <div class="form-group">
+        <label for="password">密码</label>
+        <input type="password" id="password" placeholder="至少6位字符" required>
+        <div class="error-msg" id="passwordError"></div>
+      </div>
+      <div class="form-group">
+        <label for="confirmPassword">确认密码</label>
+        <input type="password" id="confirmPassword" placeholder="再次输入密码" required>
+        <div class="error-msg" id="confirmError"></div>
+      </div>
+      <div class="form-group">
+        <label for="email">邮箱 <span class="hint">(选填)</span></label>
+        <input type="email" id="email" placeholder="example@mail.com">
+      </div>
+      <div class="form-group">
+        <label for="phone">手机号 <span class="hint">(选填)</span></label>
+        <input type="tel" id="phone" placeholder="13800138000">
+      </div>
+      <!-- 验证码占位 -->
+      <div id="captchaGroup" style="display:none;" class="form-group">
+        <label for="captcha">验证码</label>
+        <input type="text" id="captcha" placeholder="请输入验证码">
+      </div>
+      <button type="submit" id="submitBtn">注册</button>
+    </form>
+    <div class="link-text">
+      已有账号？<a href="/login.html">立即登录</a>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://api.luminya.cn';
+    const form = document.getElementById('registerForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const messageDiv = document.getElementById('message');
+
+    function showMessage(text, type) {
+      messageDiv.textContent = text;
+      messageDiv.className = `alert ${type}`;
+      messageDiv.style.display = 'block';
+    }
+    function clearErrors() {
+      document.querySelectorAll('.error-msg').forEach(el => el.textContent = '');
+    }
+
+    // 实时校验
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('confirmPassword');
+
+    usernameInput.addEventListener('input', () => {
+      const val = usernameInput.value;
+      const err = document.getElementById('usernameError');
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(val)) {
+        err.textContent = '用户名必须为3-20位字母、数字或下划线';
+      } else {
+        err.textContent = '';
+      }
+    });
+
+    passwordInput.addEventListener('input', () => {
+      const val = passwordInput.value;
+      const err = document.getElementById('passwordError');
+      if (val.length < 6) {
+        err.textContent = '密码长度至少6位';
+      } else {
+        err.textContent = '';
+      }
+    });
+
+    confirmInput.addEventListener('input', () => {
+      const err = document.getElementById('confirmError');
+      if (confirmInput.value !== passwordInput.value) {
+        err.textContent = '两次输入的密码不一致';
+      } else {
+        err.textContent = '';
+      }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors();
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+      const confirmPassword = confirmInput.value;
+      const email = document.getElementById('email').value.trim() || null;
+      const phone = document.getElementById('phone').value.trim() || null;
+
+      // 前端校验
+      let hasError = false;
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+        document.getElementById('usernameError').textContent = '用户名格式错误';
+        hasError = true;
+      }
+      if (password.length < 6) {
+        document.getElementById('passwordError').textContent = '密码至少6位';
+        hasError = true;
+      }
+      if (password !== confirmPassword) {
+        document.getElementById('confirmError').textContent = '两次密码不一致';
+        hasError = true;
+      }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showMessage('邮箱格式不正确', 'error');
+        hasError = true;
+      }
+      if (phone && !/^[0-9]{7,15}$/.test(phone)) {
+        showMessage('手机号格式不正确', 'error');
+        hasError = true;
+      }
+      if (hasError) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '注册中...';
+
+      try {
+        // 1. 注册
+        const body = { username, password };
+        if (email) body.email = email;
+        if (phone) body.phone = phone;
+
+        const res = await fetch(`${API_BASE}/api/users/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || '注册失败');
+
+        // 2. 自动登录
+        const loginRes = await fetch(`${API_BASE}/api/users/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ account: username, password }),
+        });
+        const loginData = await loginRes.json();
+        if (!loginRes.ok) throw new Error(loginData.error || '自动登录失败');
+
+        // 3. 存储 token 和用户信息
+        localStorage.setItem('token', loginData.token);
+        localStorage.setItem('user', JSON.stringify(loginData.user));
+
+        // 4. 提示并跳转
+        showMessage('注册成功！正在为您自动登录并跳转...', 'success');
+        // 在消息下方追加手动登录链接
+        const manualLink = document.createElement('div');
+        manualLink.style.marginTop = '8px';
+        manualLink.style.fontSize = '13px';
+        manualLink.innerHTML = '如果未跳转，<a href="/login.html" style="color:#b88a5e;text-decoration:underline;">点击这里</a> 手动登录';
+        messageDiv.appendChild(manualLink);
+
+        setTimeout(() => {
+          window.location.href = '/'; // 跳转到首页（根据你的路由修改）
+        }, 2000);
+      } catch (err) {
+        showMessage(err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '注册';
+      }
+    });
+  </script>
+</body>
+</html>
