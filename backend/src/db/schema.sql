@@ -105,6 +105,15 @@ CREATE TABLE IF NOT EXISTS admins (
   admin_role    TEXT NOT NULL DEFAULT 'superadmin',
   FOREIGN KEY (admin_user_id) REFERENCES users(user_id)
 );
+-- 在 schema.sql 末尾追加
+CREATE TABLE IF NOT EXISTS sessions (
+  session_token    TEXT PRIMARY KEY,
+  session_user_id  TEXT NOT NULL,
+  session_created_at INTEGER NOT NULL,
+  session_expires_at INTEGER NOT NULL,
+  FOREIGN KEY (session_user_id) REFERENCES users(user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(session_user_id);
 
 -- ======================
 -- 索引（D1 单线程，适度建索引）

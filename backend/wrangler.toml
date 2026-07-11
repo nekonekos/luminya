@@ -1,0 +1,44 @@
+# ============================================================
+# LumiNya Backend — Wrangler 配置文件
+# ============================================================
+name = "luminya-api"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+
+# 默认使用 Workers 免费计划，可根据需要调整
+# workers_dev = true   # 使用 workers.dev 子域名测试时启用
+# route = "api.luminya.cn/*"   # 绑定自定义域名时启用
+
+# ---------- 环境变量 ----------
+[vars]
+ENVIRONMENT = "production"
+
+# ---------- D1 数据库绑定 ----------
+[[d1_databases]]
+binding = "DB"          # 在代码中通过 env.DB 访问
+database_name = "luminya-db"
+database_id = "your-d1-database-id"   # 创建 D1 后从 Cloudflare Dashboard 获取
+
+# ---------- R2 存储桶绑定 ----------
+[[r2_buckets]]
+binding = "R2"          # 在代码中通过 env.R2 访问
+bucket_name = "luminya-files"
+# bucket_name 需与 Cloudflare R2 实际名称一致
+
+# ---------- 定时任务（Cron Triggers）----------
+[triggers]
+crons = ["0 3 * * *"]   # UTC 每天 3:00 执行（北京时间 11:00）
+
+# ---------- 高级选项 ----------
+# 如果使用 Cloudflare Image Resizing（需要付费计划），可添加：
+# [unsafe.bindings]
+# ...
+
+# 日志保留
+# tail_consumers = [...]
+
+# ---------- 部署说明 ----------
+# 1. 用 `wrangler d1 create luminya-db` 创建 D1 数据库，替换 database_id
+# 2. 用 `wrangler r2 bucket create luminya-files` 创建 R2 存储桶
+# 3. 运行 `wrangler d1 execute luminya-db --file=src/db/schema.sql` 初始化表结构
+# 4. 运行 `wrangler deploy` 部署

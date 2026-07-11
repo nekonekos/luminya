@@ -1,15 +1,15 @@
 import { handleCORS } from './middleware/cors';
 import { handleUserRoutes } from './routes/users';
-
-export interface Env {
-  DB: D1Database;
-  R2: R2Bucket;
-  // 其他绑定 ...
-}
+import { handlePostRoutes } from './routes/posts';
+import { handleCommentRoutes } from './routes/comments';
+import { handleLikeRoutes } from './routes/likes';
+import { handleUploadRoutes } from './routes/uploads';
+import { updateUserLevels } from './cron/updateLevels';
+import { cleanupDeletedPosts } from './cron/cleanupDeleted';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    // 处理 CORS 预检
+    // 预检
     const corsResponse = handleCORS(request);
     if (corsResponse) return corsResponse;
 
@@ -24,13 +24,33 @@ export default {
     }
 
     // 用户路由
-    const userResponse = await handleUserRoutes(env, request, path);
-    if (userResponse) return userResponse;
+    let response = await handleUserRoutes(env, request, path);
+    if (response) return response;
 
-    // 其他路由 404
+    // 上传路由（需要鉴权）
+    response = await handleUploadRoutes(env, request, path);
+    if (response) return response;
+
+    // 帖子路由
+    response = await handlePostRoutes(env, request, path);
+    if (response) return response;
+
+    // 评论路由
+    response = await handleCommentRoutes(env, request, path);
+    if (response) return response;
+
+    // 点赞路由
+    response = await handleLikeRoutes(env, request, path);
+    if (response) return response;
+
+    // 404
     return new Response(JSON.stringify({ error: 'Not Found' }), {
       status: 404,
       headers: { 'Content-Type': 'application/json' },
     });
   },
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(updateUserLevels(env));
+    ctx.waitUntil(cleanupDeletedPosts(env));
+  }
 };
