@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS posts (
 -- 帖子图片关联表（多图支持，封面是其中一张）
 CREATE TABLE IF NOT EXISTS post_images (
   postimg_id          TEXT PRIMARY KEY,
-  postimg_post_id     TEXT NOT NULL,
+  postimg_post_id     TEXT,
   postimg_url         TEXT NOT NULL,
   postimg_w200        TEXT,
   postimg_w400        TEXT,

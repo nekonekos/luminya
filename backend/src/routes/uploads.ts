@@ -1,7 +1,12 @@
 import { verifyToken } from '../middleware/auth';
 import { generateId } from '../utils/id';
 import { IMAGE_MAX_SIZE_BYTES } from '../constants';
-
+function json(data: any, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
 async function uploadImage(env: Env, request: Request): Promise<Response> {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) return json({ error: '请先登录' }, 401);
@@ -43,7 +48,7 @@ async function uploadImage(env: Env, request: Request): Promise<Response> {
   });
 
   // 构造原图 URL（假设 R2 公开访问 URL 前缀为 /r2/ 或绑定自定义域）
-  const baseUrl = `https://your-domain.com/${key}`;
+  const baseUrl = `https://api.luminya.cn/${key}`;
   // 对于缩略图，我们使用 Cloudflare Image Resizing 参数（需在 Worker 域名或自定义域启用）
   // 如果不启用，直接记录相同 URL；前端可通过 ?width=200 获取变体
   const w200 = `${baseUrl}?width=200`;

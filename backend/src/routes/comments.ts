@@ -3,7 +3,13 @@ import { generateId } from '../utils/id';
 import { COMMENT_CONTENT_MAX_LENGTH } from '../constants';
 
 // 同上辅助函数 json, badRequest, unauthorized
-
+// 放在 import 语句下方
+function json(data: any, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
 async function createComment(env: Env, request: Request): Promise<Response> {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) return unauthorized();
@@ -45,14 +51,17 @@ async function createComment(env: Env, request: Request): Promise<Response> {
 }
 
 async function getComments(env: Env, request: Request, postId: string): Promise<Response> {
-  const comments = await env.DB.prepare(
-    'SELECT * FROM comments WHERE comment_post_id = ? ORDER BY comment_created_at ASC'
-  )
-    .bind(postId)
-    .all();
-  return json(comments.results);
+  try {
+    const comments = await env.DB.prepare(
+      'SELECT * FROM comments WHERE comment_post_id = ? ORDER BY comment_created_at ASC'
+    ).bind(postId).all();
+    const response = json(comments.results);
+    response.headers.set('Access-Control-Allow-Origin', '*'); // 直接加 CORS 头
+    return response;
+  } catch (e) {
+    return json({ error: '获取评论失败' }, 500);
+  }
 }
-
 export async function handleCommentRoutes(env: Env, request: Request, path: string): Promise<Response | null> {
   const method = request.method;
   if (method === 'POST' && path === '/api/comments') return createComment(env, request);

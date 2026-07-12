@@ -6,7 +6,70 @@
     <title>LumiNya · 私域创作社区</title>
     <link rel="stylesheet" href="/css/pc.css">
     <style>
-        /* 复用弹窗样式（与之前统一） */
+        /* ========== 全局补充 ========== */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .post-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* ========== 通用按钮 ========== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            background: #8faa8f;
+            color: white;
+            text-decoration: none;
+            line-height: 1.4;
+        }
+        .btn:hover {
+            background: #7a9e7a;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+        }
+        .btn-outline:hover {
+            border-color: #b88a5e;
+            color: #b88a5e;
+            background: var(--bg-card);
+        }
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 0.8rem;
+        }
+        .btn-like {
+            background: transparent;
+            border: 1px solid #e0cfcf;
+            color: #c47a7a;
+            padding: 6px 14px;
+            font-size: 0.9rem;
+        }
+        .btn-like:hover {
+            background: #fef5f5;
+            border-color: #c47a7a;
+        }
+        .btn-like.liked {
+            background: #fbe8e8;
+            border-color: #c47a7a;
+            color: #b04a4a;
+        }
+
+        /* ========== 弹窗（与现有统一） ========== */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -91,7 +154,7 @@
             background: #7a9e7a;
         }
 
-        /* 搜索栏 */
+        /* ========== 搜索栏 ========== */
         .search-bar {
             display: flex;
             align-items: center;
@@ -119,10 +182,10 @@
         .search-bar .search-icon {
             color: var(--text-muted);
             font-size: 1rem;
-            cursor: pointer;
+            cursor: default;
         }
 
-        /* 帖子详情额外样式 */
+        /* ========== 帖子详情扩展 ========== */
         .post-detail-card {
             background: var(--bg-card);
             border-radius: var(--radius);
@@ -145,6 +208,12 @@
             margin: 20px 0;
             word-break: break-word;
         }
+        .post-detail-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
         .post-detail-meta {
             display: flex;
             align-items: center;
@@ -166,8 +235,16 @@
             background: #eef2e7;
             color: #5f7a5f;
         }
+        .post-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-light);
+        }
 
-        /* 评论区 */
+        /* ========== 评论区 ========== */
         .comments-section {
             background: var(--bg-card);
             border-radius: var(--radius);
@@ -287,27 +364,26 @@
             <a href="/home.html" class="logo"><span class="logo-symbol">✦</span>LumiNya</a>
             <span class="slogan">“每一缕思绪，都有回响”</span>
         </div>
-        <!-- 搜索栏（预留） -->
         <div class="search-bar">
             <span class="search-icon">🔍</span>
             <input type="text" placeholder="搜索标签或关键词..." id="searchInput" disabled title="搜索功能即将上线">
         </div>
         <div class="header-right" id="headerRight">
-            <!-- 动态渲染：未登录显示登录/注册，已登录显示用户徽章和创作中心 -->
+            <!-- 动态渲染 -->
         </div>
     </header>
 
     <div class="main-container">
         <aside class="left-sidebar" id="leftSidebar">
-            <!-- 动态渲染标签云、成长信息 -->
+            <!-- 动态渲染 -->
         </aside>
 
         <main class="content-feed" id="contentFeed">
-            <!-- 动态渲染：Feed列表或帖子详情 -->
+            <!-- 动态渲染 -->
         </main>
 
         <aside class="right-sidebar" id="rightSidebar">
-            <!-- 动态渲染用户卡片、AI精灵、热议标签 -->
+            <!-- 动态渲染 -->
         </aside>
     </div>
 
@@ -336,17 +412,17 @@
 
             // ---------- 常量 ----------
             const RING_MAP = {
-                'user_TOR_spring': { label: '春·萌芽', icon: '🌿', cssClass: 'spring' },
-                'user_TOR_summer': { label: '夏·繁茂', icon: '☀️', cssClass: 'summer' },
-                'user_TOR_autumn': { label: '秋·蕴藏', icon: '🍂', cssClass: 'autumn' },
-                'user_TOR_winter': { label: '冬·休憩', icon: '❄️', cssClass: 'winter' }
+                'user_TOR_spring': { label: '春·萌芽', icon: '🌿' },
+                'user_TOR_summer': { label: '夏·繁茂', icon: '☀️' },
+                'user_TOR_autumn': { label: '秋·蕴藏', icon: '🍂' },
+                'user_TOR_winter': { label: '冬·休憩', icon: '❄️' }
             };
             const SPECTRUM_MAP = {
-                'user_spectrum_candle':    { label: '烛火', icon: '🕯️', cssClass: 'candle' },
-                'user_spectrum_flame':     { label: '焰心', icon: '🔥', cssClass: 'flame' },
-                'user_spectrum_glow':      { label: '灵光', icon: '💡', cssClass: 'glow' },
-                'user_spectrum_lumi':      { label: '星辉', icon: '🌟', cssClass: 'lumi' },
-                'user_spectrum_sunbright': { label: '极昼', icon: '☀️', cssClass: 'sunbright' }
+                'user_spectrum_candle':    { label: '烛火', icon: '🕯️' },
+                'user_spectrum_flame':     { label: '焰心', icon: '🔥' },
+                'user_spectrum_glow':      { label: '灵光', icon: '💡' },
+                'user_spectrum_lumi':      { label: '星辉', icon: '🌟' },
+                'user_spectrum_sunbright': { label: '极昼', icon: '☀️' }
             };
 
             let currentUser = null;
@@ -355,6 +431,7 @@
             let feedLoading = false;
             let feedObserver = null;
             let postDetailId = null;
+            let likeState = {}; // postId -> boolean
 
             const headerRight = document.getElementById('headerRight');
             const leftSidebar = document.getElementById('leftSidebar');
@@ -409,8 +486,7 @@
             async function fetchUserInfo() {
                 if (!hasToken()) return null;
                 try {
-                    const user = await LumiNyaAPI.get('/users/me');
-                    return user;
+                    return await LumiNyaAPI.get('/users/me');
                 } catch (e) {
                     return null;
                 }
@@ -508,7 +584,7 @@
                 const themeTags = ['React', '独立游戏', '前端工程化', 'UI设计', 'Rust', 'Serverless', 'AI绘画', '开源项目'];
                 const moodTags = ['深夜灵感', 'UI吐槽', '开源焦虑', '求职焦虑', '创作热情'];
                 const tags = type === 'theme' ? themeTags : moodTags;
-                container.innerHTML = tags.map(t => `<span class="tag${type === 'mood' ? ' mood' : ''}" data-tag="${t}">#${t}</span>`).join('');
+                container.innerHTML = tags.map(t => `<span class="tag${type === 'mood' ? ' mood' : ''}">#${t}</span>`).join('');
             }
 
             function renderRightSidebar() {
@@ -573,8 +649,8 @@
                     ? `<div class="post-cover"><img src="${post.posts_cover_url}?width=400" alt="封面" loading="lazy"></div>`
                     : '';
                 const author = post.author || {};
-                const ring = RING_MAP[author.user_annual_ring] || { label: author.user_annual_ring || '?' };
-                const spectrum = SPECTRUM_MAP[author.user_spectrum] || { label: author.user_spectrum || '?' };
+                const ring = RING_MAP[author.user_annual_ring] || { label: '?' };
+                const spectrum = SPECTRUM_MAP[author.user_spectrum] || { label: '?' };
                 const summary = post.posts_summary || '';
                 const tags = (post.tags || []).slice(0, 2);
                 const timeStr = formatRelativeTime(post.posts_created_at);
@@ -585,7 +661,7 @@
                     <article class="post-card ${isCorner ? 'highlight' : ''}" data-post-id="${post.posts_id}">
                         ${isCorner ? '<span class="highlight-label">角落之光</span>' : ''}
                         ${coverHtml}
-                        <h3 class="post-title" ${isCorner ? 'style="margin-top:0;"' : ''}>${escapeHtml(post.posts_title)}</h3>
+                        <h3 class="post-title">${escapeHtml(post.posts_title)}</h3>
                         <p class="post-excerpt">${escapeHtml(summary)}</p>
                         <div class="post-meta">
                             <div class="post-tags">
@@ -603,7 +679,6 @@
                 `;
             }
 
-            // 帖子详情（无作者用户名，使用UUID）
             function renderPostDetail(post) {
                 const coverHtml = (post.posts_hascover && post.posts_cover_url && post.posts_cover_url !== 'N/A')
                     ? `<img class="post-detail-cover" src="${post.posts_cover_url}?width=800" alt="封面">`
@@ -613,7 +688,7 @@
                 let extraImagesHtml = '';
                 if (images.length > 0) {
                     extraImagesHtml = '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;">' +
-                        images.map(img => `<img src="${img.postimg_w400}" style="max-width:200px; border-radius:12px;" alt="配图">`).join('') +
+                        images.map(img => `<img src="${img.postimg_w400}" style="max-width:200px; border-radius:12px;" alt="配图" loading="lazy">`).join('') +
                         '</div>';
                 }
                 const contentHtml = renderMarkdown(post.posts_content);
@@ -634,11 +709,55 @@
                         </div>
                         <div class="post-detail-content">${contentHtml}</div>
                         ${extraImagesHtml}
+                        <div class="post-actions" id="postActions-${post.posts_id}">
+                            <!-- 点赞按钮动态插入 -->
+                        </div>
                     </div>
                 `;
             }
 
-            // 评论树构建
+            // 点赞逻辑
+            async function toggleLike(postId) {
+                if (!hasToken()) {
+                    showModal('🔒', '请先登录', '登录后即可点赞', '登录', () => {
+                        window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
+                    }, true);
+                    return;
+                }
+                try {
+                    const result = await LumiNyaAPI.post('/likes', { postId });
+                    likeState[postId] = result.liked;
+                    updateLikeButton(postId);
+                } catch (err) {
+                    console.error('点赞操作失败:', err);
+                }
+            }
+
+            function updateLikeButton(postId) {
+                const btn = document.getElementById(`likeBtn-${postId}`);
+                if (!btn) return;
+                const liked = likeState[postId] || false;
+                btn.textContent = liked ? '❤️ 已赞' : '🤍 点赞';
+                btn.className = `btn btn-sm btn-like${liked ? ' liked' : ''}`;
+            }
+
+            function initLikeButton(postId) {
+                // 默认未点赞，除非之前缓存了状态
+                if (likeState[postId] === undefined) likeState[postId] = false;
+                const actionsContainer = document.getElementById(`postActions-${postId}`);
+                if (!actionsContainer) return;
+                actionsContainer.innerHTML = `
+                    <button class="btn btn-sm btn-like${likeState[postId] ? ' liked' : ''}" id="likeBtn-${postId}">
+                        ${likeState[postId] ? '❤️ 已赞' : '🤍 点赞'}
+                    </button>
+                `;
+                document.getElementById(`likeBtn-${postId}`).addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleLike(postId);
+                });
+            }
+
+            // 评论相关
             function buildCommentTree(comments) {
                 const map = new Map();
                 const roots = [];
@@ -662,8 +781,8 @@
                 }
                 const tree = buildCommentTree(comments);
                 let html = '<div class="comment-list">';
-                function renderNode(comment, isChild = false) {
-                    const authorName = comment.comment_author_id; // 暂无用户名，使用ID
+                function renderNode(comment) {
+                    const authorName = comment.comment_author_id;
                     html += `
                         <div class="comment-item">
                             <div class="comment-avatar">${authorName.charAt(0).toUpperCase()}</div>
@@ -677,7 +796,7 @@
                     `;
                     if (comment.children && comment.children.length > 0) {
                         html += '<div class="comment-children">';
-                        comment.children.forEach(child => renderNode(child, true));
+                        comment.children.forEach(child => renderNode(child));
                         html += '</div>';
                     }
                 }
@@ -686,13 +805,12 @@
                 return html;
             }
 
-            // 加载评论
             async function loadComments(postId) {
-                const commentsSection = document.getElementById('commentsSection');
-                if (!commentsSection) return;
+                const section = document.getElementById('commentsSection');
+                if (!section) return;
                 try {
                     const comments = await LumiNyaAPI.get('/comments/' + postId);
-                    commentsSection.innerHTML = `
+                    section.innerHTML = `
                         <h3 style="margin-bottom:16px;">评论</h3>
                         ${currentUser ? `
                             <div class="comment-form" id="commentForm">
@@ -706,7 +824,7 @@
                         `}
                         <div id="commentListContainer">${renderComments(comments)}</div>
                     `;
-                    // 绑定回复按钮事件
+                    // 绑定回复按钮
                     document.querySelectorAll('.comment-reply-btn').forEach(btn => {
                         btn.addEventListener('click', function(e) {
                             e.stopPropagation();
@@ -717,7 +835,6 @@
                                 }, true);
                                 return;
                             }
-                            // 简单实现：在输入框附近添加提示（可优化）
                             const textarea = document.getElementById('commentInput');
                             if (textarea) {
                                 textarea.placeholder = '回复该评论...';
@@ -726,7 +843,7 @@
                             }
                         });
                     });
-                    // 绑定提交评论
+                    // 绑定提交
                     const submitBtn = document.getElementById('submitCommentBtn');
                     const commentInput = document.getElementById('commentInput');
                     if (submitBtn && commentInput) {
@@ -740,8 +857,7 @@
                                     content: content,
                                     parentId: parentId
                                 });
-                                // 重新加载评论
-                                loadComments(postId);
+                                loadComments(postId); // 重新加载
                             } catch (err) {
                                 alert('评论失败：' + err.message);
                             }
@@ -752,7 +868,7 @@
                 }
             }
 
-            // Feed流加载
+            // Feed 流
             async function loadFeed(initial = false) {
                 if (feedLoading || !feedHasMore) return;
                 feedLoading = true;
@@ -805,7 +921,7 @@
                         contentFeed.insertAdjacentHTML('beforeend', '<div class="end-of-feed">已经到底啦</div>');
                     }
                 } catch (err) {
-                    console.error('加载Feed失败', err);
+                    console.error('加载 Feed 失败:', err);
                     contentFeed.insertAdjacentHTML('beforeend', '<div class="end-of-feed">加载失败，请稍后重试</div>');
                 } finally {
                     feedLoading = false;
@@ -814,14 +930,15 @@
                 }
             }
 
-            // 加载帖子详情（需要鉴权，若无token弹窗）
             async function loadPostDetail(postId) {
                 contentFeed.innerHTML = '<div class="loading-indicator">加载中...</div>';
                 try {
                     const post = await LumiNyaAPI.get('/posts/' + postId);
                     const detailHtml = renderPostDetail(post);
                     contentFeed.innerHTML = detailHtml;
-                    // 添加评论区容器
+                    // 初始化点赞按钮
+                    initLikeButton(postId);
+                    // 评论区
                     contentFeed.insertAdjacentHTML('beforeend', '<div class="comments-section" id="commentsSection">加载评论中...</div>');
                     loadComments(postId);
                 } catch (err) {
@@ -836,7 +953,6 @@
                 }
             }
 
-            // 初始化
             async function init() {
                 // 用户信息
                 if (hasToken()) {
@@ -866,7 +982,6 @@
                     await loadFeed(true);
                 }
 
-                // 未登录且非详情，3秒后弹窗
                 if (!currentUser && !postDetailId) {
                     setTimeout(() => {
                         if (!currentUser && !hasToken()) {
@@ -877,7 +992,6 @@
                     }, 3000);
                 }
 
-                // 浮动按钮
                 createBtn.addEventListener('click', () => {
                     if (!hasToken()) {
                         window.location.href = '/login.html?redirect=' + encodeURIComponent('/contentcenter.html');
@@ -887,7 +1001,7 @@
                 });
 
                 modalClose.addEventListener('click', hideModal);
-                modalOverlay.addEventListener('click', function(e) {
+                modalOverlay.addEventListener('click', (e) => {
                     if (e.target === modalOverlay) hideModal();
                 });
             }
