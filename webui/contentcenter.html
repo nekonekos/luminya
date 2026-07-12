@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创作中心 - LumiNya</title>
+    <link rel="stylesheet" href="/css/pc.css">
+    <style>
+        :root {
+            --bg-body: #faf7f2;
+            --bg-card: #fff;
+            --border-light: #e6ddd2;
+            --text-primary: #2e241a;
+            --text-secondary: #6b5d4f;
+            --text-muted: #9b8b7a;
+            --accent: #8faa8f;
+            --accent-hover: #7a9e7a;
+            --radius: 24px;
+            --radius-sm: 12px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        a { text-decoration: none; color: inherit; }
+        .wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px 24px 40px;
+        }
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 24px 28px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+        }
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: inherit;
+            background: #fefcf9;
+            transition: 0.2s;
+            outline: none;
+        }
+        input:focus, textarea:focus {
+            border-color: #b88a5e;
+            box-shadow: 0 0 0 3px rgba(184,138,94,0.1);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        .file-upload-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            background: var(--accent);
+            color: white;
+        }
+        .btn:hover { background: var(--accent-hover); }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+        }
+        .btn-outline:hover {
+            border-color: #b88a5e;
+            color: #b88a5e;
+        }
+        .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+        .img-uploaded-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .img-uploaded-item {
+            background: #f5efe8;
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .img-uploaded-item span {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .chart-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 16px;
+        }
+        .chart-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+        .chart-label {
+            width: 160px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+        .chart-bars {
+            flex: 1;
+            display: flex;
+            gap: 4px;
+            flex-direction: column;
+        }
+        .bar-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .bar-bg {
+            flex: 1;
+            height: 12px;
+            background: #f0e8dc;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s;
+        }
+        .bar-fill.likes { background: #e0b88a; }
+        .bar-fill.views { background: #a3c9a3; }
+        .bar-num {
+            min-width: 40px;
+            text-align: right;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .post-mgmt-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .post-mgmt-table th, .post-mgmt-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border-light);
+            text-align: left;
+        }
+        .post-mgmt-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .post-mgmt-title {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .post-mgmt-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .modal-overlay {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: 0.25s;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box {
+            background: #fff; border-radius: 24px; padding: 32px 28px;
+            width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+        .modal-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .modal-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+        .modal-desc { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 20px; }
+        .modal-btn {
+            display: inline-block; padding: 8px 24px; border-radius: 40px;
+            background: var(--accent); color: white; font-weight: 600; cursor: pointer;
+            border: none; transition: 0.2s;
+        }
+        .modal-btn:hover { background: var(--accent-hover); }
+        .footer { text-align: center; padding: 24px; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border-light); margin-top: 40px; }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航（复用首页风格） -->
+    <header class="header">
+        <div class="header-left">
+            <a href="/home.html" class="logo"><span class="logo-symbol">✦</span>LumiNya</a>
+            <span class="slogan">“每一缕思绪，都有回响”</span>
+        </div>
+        <div class="header-right" id="headerRight">
+            <!-- 动态渲染用户信息 -->
+        </div>
+    </header>
+
+    <div class="wrapper">
+        <!-- 投稿区域 -->
+        <div class="card" id="postEditor">
+            <div class="card-title">✍️ 发布新帖子</div>
+            <div class="form-group">
+                <label for="postTitle">标题 *</label>
+                <input type="text" id="postTitle" placeholder="输入帖子标题" maxlength="200">
+            </div>
+            <div class="form-group">
+                <label for="postTags">标签（多个用逗号分隔）</label>
+                <input type="text" id="postTags" placeholder="例如：React, 前端工程化, 深夜灵感">
+            </div>
+            <div class="form-group">
+                <label for="postContent">内容 (Markdown) *</label>
+                <textarea id="postContent" placeholder="支持 Markdown 语法..."></textarea>
+                <button class="btn btn-sm btn-outline" id="insertImageBtn" style="margin-top:6px;">📷 插入图片</button>
+            </div>
+            <div class="form-group">
+                <label>封面图片（可选，会作为帖子封面）</label>
+                <input type="file" id="coverInput" accept="image/*">
+                <div id="coverPreview" style="margin-top:4px; font-size:0.8rem; color:var(--text-muted);"></div>
+            </div>
+            <button class="btn" id="submitPostBtn">发布帖子</button>
+            <div id="submitError" style="color:#b02a2a; font-size:0.85rem; margin-top:8px;"></div>
+        </div>
+
+        <!-- 数据中心 -->
+        <div class="card" id="dataCenter">
+            <div class="card-title">📊 数据概览</div>
+            <div id="dataChart" class="chart-container">
+                <!-- 动态生成柱状图 -->
+            </div>
+            <div id="noDataMsg" style="text-align:center; color:var(--text-muted); padding:20px;">暂无数据</div>
+        </div>
+
+        <!-- 内容管理 -->
+        <div class="card" id="contentMgmt">
+            <div class="card-title">📋 内容管理</div>
+            <div style="overflow-x:auto;">
+                <table class="post-mgmt-table" id="mgmtTable">
+                    <thead>
+                        <tr>
+                            <th>标题</th>
+                            <th>时间</th>
+                            <th>👍 赞</th>
+                            <th>👁️ 浏览</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mgmtBody">
+                    </tbody>
+                </table>
+            </div>
+            <div id="mgmtEmpty" style="text-align:center; color:var(--text-muted); padding:20px;">暂无帖子</div>
+        </div>
+
+        <!-- 安全中心入口 -->
+        <div style="text-align:right;">
+            <button class="btn btn-outline" id="gotoAccountBtn">🔐 安全中心</button>
+        </div>
+    </div>
+
+    <!-- 弹窗：发帖成功 / 功能开发中 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <div class="modal-icon" id="modalIcon">✅</div>
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-desc" id="modalDesc"></div>
+            <button class="modal-btn" id="modalActionBtn">好的</button>
+        </div>
+    </div>
+
+    <footer class="footer">LumiNya · 私域创作社区 · 2026</footer>
+
+    <script src="/js/fetch.js"></script>
+    <script>
+        (function() {
+            // 常量
+            const RING_MAP = {
+                'user_TOR_spring': { label: '春·萌芽', icon: '🌿' },
+                'user_TOR_summer': { label: '夏·繁茂', icon: '☀️' },
+                'user_TOR_autumn': { label: '秋·蕴藏', icon: '🍂' },
+                'user_TOR_winter': { label: '冬·休憩', icon: '❄️' }
+            };
+            const SPECTRUM_MAP = {
+                'user_spectrum_candle': { label: '烛火', icon: '🕯️' },
+                'user_spectrum_flame': { label: '焰心', icon: '🔥' },
+                'user_spectrum_glow': { label: '灵光', icon: '💡' },
+                'user_spectrum_lumi': { label: '星辉', icon: '🌟' },
+                'user_spectrum_sunbright': { label: '极昼', icon: '☀️' }
+            };
+
+            // 状态
+            let currentUser = null;
+            let allPosts = [];            // 用户所有帖子数据
+            let coverImageId = null;
+            let contentImageIds = [];     // 存 imageId 数组
+
+            // DOM 元素
+            const headerRight = document.getElementById('headerRight');
+            const postTitle = document.getElementById('postTitle');
+            const postTags = document.getElementById('postTags');
+            const postContent = document.getElementById('postContent');
+            const coverInput = document.getElementById('coverInput');
+            const coverPreview = document.getElementById('coverPreview');
+            const insertImageBtn = document.getElementById('insertImageBtn');
+            const submitPostBtn = document.getElementById('submitPostBtn');
+            const submitError = document.getElementById('submitError');
+            const dataChart = document.getElementById('dataChart');
+            const noDataMsg = document.getElementById('noDataMsg');
+            const mgmtBody = document.getElementById('mgmtBody');
+            const mgmtEmpty = document.getElementById('mgmtEmpty');
+            const gotoAccountBtn = document.getElementById('gotoAccountBtn');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalIcon = document.getElementById('modalIcon');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDesc = document.getElementById('modalDesc');
+            const modalActionBtn = document.getElementById('modalActionBtn');
+
+            // 工具函数
+            function showModal(icon, title, desc, callback) {
+                modalIcon.textContent = icon || '✅';
+                modalTitle.textContent = title;
+                modalDesc.textContent = desc || '';
+                modalActionBtn.onclick = function() {
+                    hideModal();
+                    if (callback) callback();
+                };
+                modalOverlay.classList.add('active');
+            }
+            function hideModal() {
+                modalOverlay.classList.remove('active');
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // 控制字符检测
+            function containsControlChars(str) {
+                return /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(str);
+            }
+
+            // 图片上传并压缩为webp
+            async function uploadImage(file, isCover = false) {
+                // 压缩为 WebP 并限制大小
+                const compressedBlob = await compressToWebP(file, 200 * 1024);
+                const formData = new FormData();
+                formData.append('file', compressedBlob, 'image.webp');
+                const result = await LumiNyaAPI.upload('/uploads', formData);
+                if (result && result.imageId) {
+                    if (isCover) {
+                        coverImageId = result.imageId;
+                        coverPreview.textContent = '封面已上传';
+                    } else {
+                        contentImageIds.push(result.imageId);
+                        // 在内容区尾部插入 Markdown 图片语法
+                        const imgUrl = result.urls.original;
+                        postContent.value += `\n![图片](${imgUrl})\n`;
+                        // 刷新内容图片列表预览（可选）
+                    }
+                } else {
+                    throw new Error('上传失败');
+                }
+            }
+
+            // 压缩图片至指定最大字节
+            function compressToWebP(file, maxBytes) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            // 最大尺寸限制1920px
+                            const MAX_DIM = 1920;
+                            if (width > MAX_DIM || height > MAX_DIM) {
+                                if (width > height) {
+                                    height = Math.round((height / width) * MAX_DIM);
+                                    width = MAX_DIM;
+                                } else {
+                                    width = Math.round((width / height) * MAX_DIM);
+                                    height = MAX_DIM;
+                                }
+                            }
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            // 尝试不同的质量以满足大小限制
+                            function tryQuality(quality) {
+                                canvas.toBlob(function(blob) {
+                                    if (blob.size <= maxBytes || quality <= 0.1) {
+                                        resolve(blob);
+                                    } else {
+                                        tryQuality(quality - 0.1);
+                                    }
+                                }, 'image/webp', quality);
+                            }
+                            tryQuality(0.8);
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // 加载用户信息和帖子数据
+            async function loadUserAndPosts() {
+                try {
+                    currentUser = await LumiNyaAPI.get('/users/me');
+                    renderHeader();
+                    // 获取所有帖子（分页循环）
+                    allPosts = [];
+                    let page = 1;
+                    let hasMore = true;
+                    while (hasMore) {
+                        const data = await LumiNyaAPI.get(`/posts?userId=${currentUser.userId}&page=${page}`);
+                        if (data && data.posts) {
+                            allPosts.push(...data.posts);
+                            // 判断是否还有下一页
+                            if (data.posts.length === 0 || data.total <= allPosts.length) {
+                                hasMore = false;
+                            } else {
+                                page++;
+                            }
+                        } else {
+                            hasMore = false;
+                        }
+                    }
+                    renderDataChart();
+                    renderManagementTable();
+                } catch (err) {
+                    console.error(err);
+                    // 如果未登录，fetch.js 会跳转，但我们捕获一下
+                    if (!LumiNyaAPI.getToken()) {
+                        window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
+                    }
+                }
+            }
+
+            function renderHeader() {
+                const ring = RING_MAP[currentUser.annualRing] || { label: '?', icon: '' };
+                const spectrum = SPECTRUM_MAP[currentUser.spectrum] || { label: '?', icon: '' };
+                headerRight.innerHTML = `
+                    <div class="user-badge">
+                        <div class="user-avatar">${currentUser.username.charAt(0)}</div>
+                        <span>${currentUser.username}</span>
+                        <span class="level-text">${ring.label} | ${spectrum.label}</span>
+                    </div>
+                    <button class="btn-outline" id="gotoDashboardBtn">个人主页</button>
+                `;
+                document.getElementById('gotoDashboardBtn')?.addEventListener('click', () => {
+                    window.location.href = '/dashboard.html';
+                });
+            }
+
+            function renderDataChart() {
+                if (allPosts.length === 0) {
+                    dataChart.innerHTML = '';
+                    noDataMsg.style.display = 'block';
+                    return;
+                }
+                noDataMsg.style.display = 'none';
+                // 生成简单柱状图
+                let html = '';
+                allPosts.forEach(post => {
+                    const title = post.posts_title || '(无标题)';
+                    const likes = post.posts_likes || 0;
+                    const views = post.posts_views || 0;
+                    const maxVal = Math.max(likes, views, 1);
+                    const likePercent = (likes / maxVal) * 100;
+                    const viewPercent = (views / maxVal) * 100;
+                    html += `
+                        <div class="chart-row">
+                            <div class="chart-label" title="${escapeHtml(title)}">${escapeHtml(title)}</div>
+                            <div class="chart-bars">
+                                <div class="bar-wrapper">
+                                    <span style="font-size:0.7rem; width:28px;">👍</span>
+                                    <div class="bar-bg"><div class="bar-fill likes" style="width:${likePercent}%;"></div></div>
+                                    <span class="bar-num">${likes}</span>
+                                </div>
+                                <div class="bar-wrapper">
+                                    <span style="font-size:0.7rem; width:28px;">👁️</span>
+                                    <div class="bar-bg"><div class="bar-fill views" style="width:${viewPercent}%;"></div></div>
+                                    <span class="bar-num">${views}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                dataChart.innerHTML = html;
+            }
+
+            function renderManagementTable() {
+                mgmtBody.innerHTML = '';
+                if (allPosts.length === 0) {
+                    mgmtEmpty.style.display = 'block';
+                    return;
+                }
+                mgmtEmpty.style.display = 'none';
+                allPosts.forEach(post => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="post-mgmt-title" title="${escapeHtml(post.posts_title)}">${escapeHtml(post.posts_title)}</td>
+                        <td>${new Date(post.posts_created_at * 1000).toLocaleDateString()}</td>
+                        <td>${post.posts_likes || 0}</td>
+                        <td>${post.posts_views || 0}</td>
+                        <td class="post-mgmt-actions">
+                            <button class="btn btn-sm btn-outline action-btn" data-action="edit">编辑</button>
+                            <button class="btn btn-sm btn-outline action-btn" data-action="delete">删除</button>
+                            <button class="btn btn-sm btn-outline action-btn" data-action="privacy">隐私</button>
+                            <button class="btn btn-sm btn-outline action-btn" data-action="top">置顶</button>
+                        </td>
+                    `;
+                    row.querySelectorAll('.action-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showModal('🚧', '功能开发中', '敬请期待', null);
+                        });
+                    });
+                    mgmtBody.appendChild(row);
+                });
+            }
+
+            // 发帖提交
+            submitPostBtn.addEventListener('click', async () => {
+                submitError.textContent = '';
+                const title = postTitle.value.trim();
+                const content = postContent.value;
+                const tagsStr = postTags.value.trim();
+                if (!title || !content) {
+                    submitError.textContent = '标题和内容不能为空';
+                    return;
+                }
+                // 检查控制字符
+                if (containsControlChars(title) || containsControlChars(content)) {
+                    submitError.textContent = '帖子文本内容异常，请检查是否有非法字符';
+                    return;
+                }
+                const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
+                const payload = {
+                    title,
+                    content,
+                    tags
+                };
+                if (coverImageId) payload.coverImageId = coverImageId;
+                if (contentImageIds.length) payload.imageIds = contentImageIds;
+
+                try {
+                    const result = await LumiNyaAPI.post('/posts', payload);
+                    if (result && result.postId) {
+                        showModal('🎉', '发帖成功', '即将跳转到帖子页面', () => {
+                            window.location.href = '/home.html?post=' + result.postId;
+                        });
+                    } else {
+                        submitError.textContent = '发帖失败，服务器返回异常';
+                    }
+                } catch (err) {
+                    submitError.textContent = err.message || '发帖失败';
+                }
+            });
+
+            // 封面图片选择
+            coverInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                try {
+                    await uploadImage(file, true);
+                } catch (err) {
+                    coverPreview.textContent = '封面上传失败';
+                }
+            });
+
+            // 插入图片按钮（内容图片）
+            insertImageBtn.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    try {
+                        await uploadImage(file, false);
+                    } catch (err) {
+                        alert('图片上传失败');
+                    }
+                };
+                input.click();
+            });
+
+            // 跳转安全中心
+            gotoAccountBtn.addEventListener('click', () => {
+                window.location.href = '/accountcenter.html?from=' + encodeURIComponent(window.location.href);
+            });
+
+            // 初始化
+            if (!LumiNyaAPI.getToken()) {
+                window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
+            } else {
+                loadUserAndPosts();
+            }
+        })();
+    </script>
+</body>
+</html>

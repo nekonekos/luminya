@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全中心 - LumiNya</title>
+    <link rel="stylesheet" href="/css/pc.css">
+    <style>
+        .account-wrapper {
+            max-width: 640px;
+            margin: 30px auto;
+            padding: 0 24px;
+        }
+        .back-row {
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px 0;
+            transition: 0.2s;
+        }
+        .back-btn:hover {
+            color: #b88a5e;
+        }
+        .account-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 32px 28px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .security-score-section {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .score-ring {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+        }
+        .score-ring svg {
+            transform: rotate(-90deg);
+        }
+        .score-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .score-detail {
+            font-size: 0.9rem;
+        }
+        .score-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .score-item:last-child {
+            border-bottom: none;
+        }
+        .score-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .score-badge {
+            font-size: 0.8rem;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .badge-done {
+            background: #e7f0e5;
+            color: #4f6d4f;
+        }
+        .badge-pending {
+            background: #f3e8db;
+            color: #8a6d4b;
+        }
+        .badge-disabled {
+            background: #f0f0f0;
+            color: #999;
+        }
+        .user-info-group {
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0ebe2;
+        }
+        .info-label {
+            color: var(--text-muted);
+        }
+        .info-value {
+            font-weight: 500;
+        }
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            border: none;
+            transition: 0.2s;
+        }
+        .btn-logout {
+            background: #f5efe8;
+            color: #8a6d4b;
+            border: 1px solid var(--border-light);
+        }
+        .btn-logout:hover {
+            background: #fae3d9;
+            border-color: #b88a5e;
+            color: #b02a2a;
+        }
+        .btn-delete {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-light);
+        }
+        .btn-delete:hover {
+            border-color: #b02a2a;
+            color: #b02a2a;
+        }
+        /* 弹窗 (与之前页面一致) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.25s;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-box {
+            background: #fff;
+            border-radius: 24px;
+            padding: 28px;
+            width: 90%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+        .modal-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .modal-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        .modal-btn {
+            display: inline-block;
+            padding: 8px 28px;
+            border-radius: 40px;
+            background: #8faa8f;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .modal-btn:hover {
+            background: #7a9e7a;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <a href="/home.html" class="logo"><span class="logo-symbol">✦</span>LumiNya</a>
+            <span class="slogan">“每一缕思绪，都有回响”</span>
+        </div>
+        <div class="header-right" id="headerRight">
+            <!-- 动态渲染 -->
+        </div>
+    </header>
+
+    <div class="account-wrapper">
+        <div class="back-row">
+            <button class="back-btn" id="backBtn">← 返回</button>
+        </div>
+
+        <!-- 安全评分卡片 -->
+        <div class="account-card">
+            <div class="card-title">🔐 安全中心</div>
+            <div class="security-score-section">
+                <div class="score-ring" id="scoreRing">
+                    <!-- SVG 动态生成 -->
+                </div>
+                <div class="score-detail" id="scoreDetail">
+                    <!-- 各项目动态生成 -->
+                </div>
+            </div>
+            <div class="user-info-group" id="userInfoGroup">
+                <!-- 动态渲染：用户名、注册时间、年轮光谱等 -->
+            </div>
+        </div>
+
+        <!-- 操作区 -->
+        <div class="actions">
+            <button class="btn btn-logout" id="logoutBtn">退出登录</button>
+            <button class="btn btn-delete" id="deleteBtn">注销账号</button>
+        </div>
+    </div>
+
+    <!-- 注销确认弹窗 -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box">
+            <div class="modal-icon">⚠️</div>
+            <div class="modal-title">暂不支持注销账号</div>
+            <div class="modal-desc">该功能尚未开放，敬请期待。</div>
+            <button class="modal-btn" id="closeDeleteModal">确定</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        LumiNya · 私域创作社区 · 2026
+    </footer>
+
+    <script src="/js/fetch.js"></script>
+    <script>
+        (function() {
+            const RING_MAP = {
+                'user_TOR_spring': { label: '春·萌芽', icon: '🌿' },
+                'user_TOR_summer': { label: '夏·繁茂', icon: '☀️' },
+                'user_TOR_autumn': { label: '秋·蕴藏', icon: '🍂' },
+                'user_TOR_winter': { label: '冬·休憩', icon: '❄️' }
+            };
+            const SPECTRUM_MAP = {
+                'user_spectrum_candle':    { label: '烛火', icon: '🕯️' },
+                'user_spectrum_flame':     { label: '焰心', icon: '🔥' },
+                'user_spectrum_glow':      { label: '灵光', icon: '💡' },
+                'user_spectrum_lumi':      { label: '星辉', icon: '🌟' },
+                'user_spectrum_sunbright': { label: '极昼', icon: '☀️' }
+            };
+
+            let userData = null;
+
+            // DOM
+            const scoreRing = document.getElementById('scoreRing');
+            const scoreDetail = document.getElementById('scoreDetail');
+            const userInfoGroup = document.getElementById('userInfoGroup');
+            const headerRight = document.getElementById('headerRight');
+            const backBtn = document.getElementById('backBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const deleteBtn = document.getElementById('deleteBtn');
+            const deleteModal = document.getElementById('deleteModal');
+            const closeDeleteModal = document.getElementById('closeDeleteModal');
+
+            // 检查token
+            if (!LumiNyaAPI.getToken()) {
+                window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
+            }
+
+            // 加载用户信息
+            async function loadUser() {
+                try {
+                    userData = await LumiNyaAPI.get('/users/me');
+                    renderAll();
+                } catch (err) {
+                    console.error('获取用户信息失败', err);
+                    alert('加载用户信息失败，请重新登录');
+                    LumiNyaAPI.clearToken();
+                    window.location.href = '/login.html';
+                }
+            }
+
+            function calculateScore() {
+                let score = 50; // 密码基础分
+                const details = [];
+                // 邮箱
+                if (userData.email) {
+                    score += 10;
+                    details.push({ name: '邮箱绑定', desc: userData.email, points: 10, done: true });
+                } else {
+                    details.push({ name: '邮箱绑定', desc: '未绑定', points: 10, done: false });
+                }
+                // 手机
+                if (userData.phone) {
+                    score += 20;
+                    details.push({ name: '手机绑定', desc: userData.phone, points: 20, done: true });
+                } else {
+                    details.push({ name: '手机绑定', desc: '未绑定', points: 20, done: false });
+                }
+                // GitHub (预留)
+                details.push({ name: 'GitHub 绑定', desc: '暂未开放', points: 10, done: false, disabled: true });
+                // 2FA (预留)
+                details.push({ name: '两步验证 (2FA)', desc: '暂未开放', points: 10, done: false, disabled: true });
+                return { score, details };
+            }
+
+            function renderScoreRing(score) {
+                const maxScore = 100; // 总分 50+10+20+10+10 = 100
+                const percentage = Math.min(score / maxScore, 1);
+                const circumference = 2 * Math.PI * 42; // r=42
+                const offset = circumference * (1 - percentage);
+                scoreRing.innerHTML = `
+                    <svg width="100" height="100" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#f0e8dc" stroke-width="6" />
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#8faa8f" stroke-width="6"
+                            stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+                            stroke-linecap="round" />
+                    </svg>
+                    <div class="score-text">${score}</div>
+                `;
+            }
+
+            function renderScoreDetails(details) {
+                let html = '';
+                details.forEach(item => {
+                    let badgeClass = 'score-badge ';
+                    if (item.disabled) {
+                        badgeClass += 'badge-disabled';
+                    } else if (item.done) {
+                        badgeClass += 'badge-done';
+                    } else {
+                        badgeClass += 'badge-pending';
+                    }
+                    const statusText = item.disabled ? '未开放' : (item.done ? '已绑定' : '未绑定');
+                    html += `
+                        <div class="score-item">
+                            <span>${item.name}</span>
+                            <div class="score-status">
+                                <span style="color:var(--text-muted); font-size:0.85rem;">${item.desc}</span>
+                                <span class="${badgeClass}">${statusText}</span>
+                                <span style="font-weight:600; color:var(--text-primary);">+${item.points}分</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                scoreDetail.innerHTML = html;
+            }
+
+            function renderUserInfo() {
+                const ring = RING_MAP[userData.annualRing] || { label: userData.annualRing, icon: '🌱' };
+                const spectrum = SPECTRUM_MAP[userData.spectrum] || { label: userData.spectrum, icon: '🕯️' };
+                const regDate = userData.registeredAt ? new Date(userData.registeredAt * 1000).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) : '未知';
+                userInfoGroup.innerHTML = `
+                    <div class="info-row">
+                        <span class="info-label">用户名</span>
+                        <span class="info-value">${userData.username}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">注册时间</span>
+                        <span class="info-value">${regDate}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">年轮</span>
+                        <span class="info-value">${ring.icon} ${ring.label}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">光谱</span>
+                        <span class="info-value">${spectrum.icon} ${spectrum.label}</span>
+                    </div>
+                `;
+            }
+
+            function renderHeader() {
+                if (userData) {
+                    const ring = RING_MAP[userData.annualRing] || { label: userData.annualRing, icon: '' };
+                    const spectrum = SPECTRUM_MAP[userData.spectrum] || { label: userData.spectrum, icon: '' };
+                    headerRight.innerHTML = `
+                        <div class="user-badge">
+                            <div class="user-avatar">${userData.username.charAt(0)}</div>
+                            <span>${userData.username}</span>
+                            <span class="level-text">${ring.label} | ${spectrum.label}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            function renderAll() {
+                const { score, details } = calculateScore();
+                renderScoreRing(score);
+                renderScoreDetails(details);
+                renderUserInfo();
+                renderHeader();
+            }
+
+            // 返回按钮逻辑
+            function goBack() {
+                const params = new URLSearchParams(window.location.search);
+                const from = params.get('from');
+                if (from) {
+                    try {
+                        const fromUrl = new URL(from, window.location.origin);
+                        // 检查是否本站
+                        if (fromUrl.origin === window.location.origin && fromUrl.pathname.startsWith('/')) {
+                            window.location.href = fromUrl.href;
+                            return;
+                        }
+                    } catch (e) {}
+                }
+                window.location.href = '/home.html';
+            }
+
+            // 退出登录
+            logoutBtn.addEventListener('click', () => {
+                LumiNyaAPI.clearToken();
+                window.location.href = '/home.html';
+            });
+
+            // 注销弹窗
+            deleteBtn.addEventListener('click', () => {
+                deleteModal.classList.add('active');
+            });
+            closeDeleteModal.addEventListener('click', () => {
+                deleteModal.classList.remove('active');
+            });
+            deleteModal.addEventListener('click', (e) => {
+                if (e.target === deleteModal) deleteModal.classList.remove('active');
+            });
+
+            backBtn.addEventListener('click', goBack);
+
+            // 启动
+            loadUser();
+        })();
+    </script>
+</body>
+</html>
